@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
+import { ScrollTrigger } from "@/components/motion/gsap";
+import { useGsap } from "@/components/motion/useGsap";
 import { Menu, X } from "lucide-react";
 
 export default function Header() {
@@ -8,11 +10,12 @@ export default function Header() {
   const [hidden, setHidden] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useGsap(() => {
     let lastY = window.scrollY;
 
-    const handleScroll = () => {
-      const curY = window.scrollY;
+    const update = (curY: number) => {
       setScrolled(curY > 40);
 
       const dy = curY - lastY;
@@ -22,10 +25,13 @@ export default function Header() {
       }
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    ScrollTrigger.create({
+      start: 0,
+      end: "max",
+      onUpdate: (self) => update(self.scroll()),
+    });
+    update(window.scrollY);
+  }, headerRef);
 
   const navLinks = [
     { label: "Services", href: "#services" },
@@ -38,6 +44,7 @@ export default function Header() {
 
   return (
     <header
+      ref={headerRef}
       className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-4 px-[5vw] transition-all duration-500 ${
         hidden ? "-translate-y-full" : "translate-y-0"
       } ${

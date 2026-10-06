@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { ScrollTrigger } from "@/components/motion/gsap";
+import { useGsap } from "@/components/motion/useGsap";
 
 export default function ParallaxBand() {
   const bandRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
-  useEffect(() => {
-    const onScroll = () => {
+  useGsap(() => {
+    const apply = () => {
       const b = bandRef.current;
       const bi = imgRef.current;
       if (!b || !bi) return;
@@ -17,11 +19,15 @@ export default function ParallaxBand() {
       bi.style.transform = `translate3d(0, ${p * -12}%, 0)`;
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    ScrollTrigger.create({
+      trigger: bandRef.current,
+      start: "top bottom",
+      end: "bottom top",
+      onUpdate: apply,
+      onRefresh: apply,
+    });
+    apply();
+  }, bandRef);
 
   return (
     <section

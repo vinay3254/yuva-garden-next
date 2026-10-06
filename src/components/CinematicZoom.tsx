@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { ScrollTrigger } from "@/components/motion/gsap";
+import { useGsap } from "@/components/motion/useGsap";
 
 export default function CinematicZoom() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -9,16 +11,8 @@ export default function CinematicZoom() {
   const txtRef = useRef<HTMLDivElement | null>(null);
   const capRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    const onScroll = () => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const progress = Math.max(
-        0,
-        Math.min(1, -rect.top / (rect.height - window.innerHeight))
-      );
+  useGsap(() => {
+    const apply = (progress: number) => {
       // smooth ease: p * p * (3 - 2 * p)
       const ease = progress * progress * (3 - 2 * progress);
 
@@ -47,11 +41,15 @@ export default function CinematicZoom() {
       }
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    const st = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: (self) => apply(self.progress),
+      onRefresh: (self) => apply(self.progress),
+    });
+    apply(st.progress);
+  }, containerRef);
 
   return (
     <section ref={containerRef} className="h-[250vh] relative">

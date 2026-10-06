@@ -1,24 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
+import { ScrollTrigger } from "@/components/motion/gsap";
+import { useGsap } from "@/components/motion/useGsap";
 import { getWhatsAppUrl } from "@/data/content";
 
 export default function WhatsAppFAB() {
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setVisible(window.scrollY > window.innerHeight * 0.7);
-    };
+  const fabRef = useRef<HTMLAnchorElement | null>(null);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+  useGsap(() => {
+    const update = (y: number) => setVisible(y > window.innerHeight * 0.7);
 
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    ScrollTrigger.create({
+      start: 0,
+      end: "max",
+      onUpdate: (self) => update(self.scroll()),
+    });
+    update(window.scrollY);
+  }, fabRef);
 
   return (
     <a
+      ref={fabRef}
       href={getWhatsAppUrl("Hi Yuva Garden Group, I would like to chat with you about my garden.")}
       target="_blank"
       rel="noopener noreferrer"
