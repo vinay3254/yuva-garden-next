@@ -14,9 +14,6 @@ export default function Footer() {
           <a href="#process" className="text-[#c9d2c6] hover:text-[#f4f1ea] transition-colors">
             Process
           </a>
-          <a href="#popular" className="text-[#c9d2c6] hover:text-[#f4f1ea] transition-colors">
-            Shop
-          </a>
           <a href="#seasons" className="text-[#c9d2c6] hover:text-[#f4f1ea] transition-colors">
             Seasons
           </a>

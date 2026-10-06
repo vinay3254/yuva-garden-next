@@ -26,7 +26,7 @@ export default function CursorBubble() {
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
-      const interactiveCard = target.closest("[data-pop], #popular .group");
+      const interactiveCard = target.closest("[data-pop]");
       const isButtonOrLink = target.closest("button, a, input, textarea");
 
       ts = interactiveCard && !isButtonOrLink ? 1 : 0;

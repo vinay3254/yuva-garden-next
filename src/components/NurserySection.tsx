@@ -118,10 +118,10 @@ export default function NurserySection() {
           <i className="italic">one place.</i>
         </h2>
         <a
-          href="#popular"
+          href="#contact"
           className="bg-[#f4f1ea] text-[#1b2a1f] px-8 py-4 rounded-full font-semibold text-[15px] transition-all hover:bg-[#c9b88a] hover:scale-105 active:scale-95 shadow-xl mt-2"
         >
-          Browse below ↓
+          Ask what&apos;s in stock ↓
         </a>
       </div>
     </section>

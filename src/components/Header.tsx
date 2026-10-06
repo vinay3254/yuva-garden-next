@@ -37,7 +37,6 @@ export default function Header() {
     { label: "Services", href: "#services" },
     { label: "Process", href: "#process" },
     { label: "Nursery", href: "#nursery" },
-    { label: "Shop", href: "#popular" },
     { label: "Seasons", href: "#seasons" },
     { label: "Work", href: "#work" },
   ];

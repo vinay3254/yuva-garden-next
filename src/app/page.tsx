@@ -10,7 +10,6 @@ import ServicesSection from "@/components/ServicesSection";
 import ParallaxBand from "@/components/ParallaxBand";
 import ProcessSection from "@/components/ProcessSection";
 import NurserySection from "@/components/NurserySection";
-import CatalogSection from "@/components/CatalogSection";
 import SeasonsSection from "@/components/SeasonsSection";
 import SelectedWork from "@/components/SelectedWork";
 import ContactSection from "@/components/ContactSection";
@@ -44,7 +43,6 @@ export default function Home() {
         <ParallaxBand />
         <ProcessSection />
         <NurserySection />
-        <CatalogSection />
         <SeasonsSection />
         <SelectedWork />
         <ContactSection />
