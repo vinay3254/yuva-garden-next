@@ -31,23 +31,8 @@ export default function ContactSection() {
 
   const toggleNeed = (need: string) => {
     setSelectedNeeds((prev) =>
-      prev.includes(need) ? prev.filter((n) => n !== need) : [...prev, need]
+      prev.includes(need) ? prev.filter((n) => n !== need) : [...prev, need],
     );
-  };
-
-  const handleTilt = (e: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => {
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.transform = `translateY(-8px) scale(1.02) rotateX(${-y * 8}deg) rotateY(${x * 8}deg)`;
-    el.style.boxShadow = "0 25px 50px rgba(0,0,0,0.3)";
-  };
-
-  const handleUntilt = (e: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => {
-    const el = e.currentTarget;
-    el.style.transform = "none";
-    el.style.boxShadow = "none";
   };
 
   // WhatsApp Quote Message
@@ -65,9 +50,15 @@ export default function ContactSection() {
   }, [name, area, selectedNeeds, selectedSize, notes]);
 
   return (
-    <section id="contact" className="bg-[#1b2a1f] text-[#f4f1ea] py-[14vh] px-[5vw]">
+    <section
+      id="contact"
+      className="bg-[#1b2a1f] text-[#f4f1ea] py-[14vh] px-[5vw]"
+    >
       {/* Section Header */}
-      <div className="flex justify-between items-end gap-6 flex-wrap mb-14">
+      <div
+        data-reveal
+        className="flex justify-between items-end gap-6 flex-wrap mb-14"
+      >
         <h2 className="font-serif-bodoni font-normal text-[clamp(44px,6vw,96px)] leading-none m-0 tracking-[-0.02em]">
           Let&apos;s talk about
           <br />
@@ -81,14 +72,19 @@ export default function ContactSection() {
               isStoreOpen ? "bg-[#7fd38a] animate-pulse" : "bg-[#d98a7f]"
             }`}
           />
-          <span>{isStoreOpen ? "Open now · until 7 pm" : "Closed now · opens 9 am"}</span>
+          <span>
+            {isStoreOpen ? "Open now · until 7 pm" : "Closed now · opens 9 am"}
+          </span>
         </div>
       </div>
 
       {/* 4 Quick Contact Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         {/* Call Card */}
-        <LusionCard index={0} className="rounded-[22px] bg-[#f4f1ea] text-[#1b2a1f] h-full">
+        <LusionCard
+          index={0}
+          className="rounded-[22px] bg-[#f4f1ea] text-[#1b2a1f] h-full"
+        >
           <a
             href="tel:+910000000000"
             className="flex flex-col justify-between gap-6 p-7 h-full group"
@@ -108,9 +104,15 @@ export default function ContactSection() {
         </LusionCard>
 
         {/* WhatsApp Card */}
-        <LusionCard index={1} glowColor="rgba(255, 255, 255, 0.4)" className="rounded-[22px] bg-[#c9e3b8] text-[#1b2a1f] h-full">
+        <LusionCard
+          index={1}
+          glowColor="rgba(255, 255, 255, 0.4)"
+          className="rounded-[22px] bg-[#c9e3b8] text-[#1b2a1f] h-full"
+        >
           <a
-            href={getWhatsAppUrl("Hi Yuva Garden Group, I am sharing photos of my space for a garden quote.")}
+            href={getWhatsAppUrl(
+              "Hi Yuva Garden Group, I am sharing photos of my space for a garden quote.",
+            )}
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col justify-between gap-6 p-7 h-full group"
@@ -130,7 +132,11 @@ export default function ContactSection() {
         </LusionCard>
 
         {/* Nursery Location Card */}
-        <LusionCard index={2} glowColor="rgba(255, 255, 255, 0.4)" className="rounded-[22px] bg-[#f0d9a8] text-[#1b2a1f] h-full">
+        <LusionCard
+          index={2}
+          glowColor="rgba(255, 255, 255, 0.4)"
+          className="rounded-[22px] bg-[#f0d9a8] text-[#1b2a1f] h-full"
+        >
           <a
             href="https://maps.google.com/?q=Bettahalsur,+Bangalore"
             target="_blank"
@@ -152,7 +158,11 @@ export default function ContactSection() {
         </LusionCard>
 
         {/* Operating Hours Card */}
-        <LusionCard index={3} glowColor="rgba(201, 184, 138, 0.25)" className="rounded-[22px] bg-[#24362a] border border-[#33463a] text-[#f4f1ea] h-full">
+        <LusionCard
+          index={3}
+          glowColor="rgba(201, 184, 138, 0.25)"
+          className="rounded-[22px] bg-[#24362a] border border-[#33463a] text-[#f4f1ea] h-full"
+        >
           <div className="flex flex-col justify-between gap-4 p-7 h-full">
             <span className="text-xs font-semibold tracking-widest uppercase text-[#c9b88a]">
               Hours
@@ -180,7 +190,8 @@ export default function ContactSection() {
               Get a free quote
             </div>
             <div className="text-[15px] text-[#5d6a60] mt-1.5">
-              Fill this in and it opens WhatsApp with your customized message ready to send.
+              Fill this in and it opens WhatsApp with your customized message
+              ready to send.
             </div>
           </div>
 
@@ -300,7 +311,9 @@ export default function ContactSection() {
               return (
                 <div
                   key={faq.q}
-                  className={i < faqList.length - 1 ? "border-b border-[#33463a]" : ""}
+                  className={
+                    i < faqList.length - 1 ? "border-b border-[#33463a]" : ""
+                  }
                 >
                   <button
                     type="button"

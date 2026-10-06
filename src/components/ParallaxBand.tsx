@@ -1,32 +1,38 @@
 "use client";
 
 import { useRef } from "react";
-import { ScrollTrigger } from "@/components/motion/gsap";
+import { gsap, ScrollTrigger } from "@/components/motion/gsap";
 import { useGsap } from "@/components/motion/useGsap";
+import { MOTION_OK_QUERY } from "@/components/motion/reducedMotion";
 
 export default function ParallaxBand() {
   const bandRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   useGsap(() => {
-    const apply = () => {
-      const b = bandRef.current;
-      const bi = imgRef.current;
-      if (!b || !bi) return;
+    const mm = gsap.matchMedia();
+    mm.add(MOTION_OK_QUERY, () => {
+      const apply = () => {
+        const b = bandRef.current;
+        const bi = imgRef.current;
+        if (!b || !bi) return;
 
-      const r = b.getBoundingClientRect();
-      const p = (r.top + r.height / 2 - window.innerHeight / 2) / window.innerHeight;
-      bi.style.transform = `translate3d(0, ${p * -12}%, 0)`;
-    };
+        const r = b.getBoundingClientRect();
+        const p =
+          (r.top + r.height / 2 - window.innerHeight / 2) / window.innerHeight;
+        bi.style.transform = `translate3d(0, ${p * -12}%, 0)`;
+      };
 
-    ScrollTrigger.create({
-      trigger: bandRef.current,
-      start: "top bottom",
-      end: "bottom top",
-      onUpdate: apply,
-      onRefresh: apply,
+      ScrollTrigger.create({
+        trigger: bandRef.current,
+        start: "top bottom",
+        end: "bottom top",
+        onUpdate: apply,
+        onRefresh: apply,
+      });
+      apply();
+      return () => imgRef.current?.style.removeProperty("transform");
     });
-    apply();
   }, bandRef);
 
   return (
@@ -38,6 +44,7 @@ export default function ParallaxBand() {
         ref={imgRef}
         src="https://images.unsplash.com/photo-1597201278257-3687be27d954?auto=format&fit=crop&w=2200&q=70"
         alt="Vibrant landscaped flower beds and lush green shrubs"
+        loading="lazy"
         className="absolute left-0 right-0 top-[-15%] w-full h-[130%] object-cover will-change-transform"
       />
       <div className="absolute inset-0 bg-[#0f1611]/45" />

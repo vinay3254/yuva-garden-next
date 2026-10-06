@@ -4,7 +4,10 @@ import { processSteps } from "@/data/content";
 export default function ProcessSection() {
   return (
     <section id="process" className="py-[14vh] px-[5vw]">
-      <div className="flex justify-between items-end gap-6 flex-wrap mb-12">
+      <div
+        data-reveal
+        className="flex justify-between items-end gap-6 flex-wrap mb-12"
+      >
         <h2 className="font-serif-bodoni font-normal text-[clamp(40px,5vw,76px)] leading-none m-0 tracking-[-0.015em]">
           How we <i className="italic">work</i>
         </h2>
@@ -15,11 +18,15 @@ export default function ProcessSection() {
 
       <FoldStack>
         {processSteps.map((step) => (
-          <article key={step.n} className="relative h-[72vh] min-h-[420px] text-[#f4f1ea]">
+          <article
+            key={step.n}
+            className="relative h-[72vh] min-h-[420px] text-[#f4f1ea]"
+          >
             <img
               data-parallax
               src={step.image}
               alt={step.title}
+              loading="lazy"
               className="absolute inset-x-0 top-0 w-full h-[120%] object-cover will-change-transform"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-[#0f1611]/25 to-[#0f1611]/85" />

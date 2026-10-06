@@ -8,12 +8,6 @@ export default function Footer() {
           Yuva Garden Group
         </div>
         <nav className="flex gap-6 flex-wrap">
-          <a href="#services" className="text-[#c9d2c6] hover:text-[#f4f1ea] transition-colors">
-            Services
-          </a>
-          <a href="#process" className="text-[#c9d2c6] hover:text-[#f4f1ea] transition-colors">
-            Process
-          </a>
           <a href="#seasons" className="text-[#c9d2c6] hover:text-[#f4f1ea] transition-colors">
             Seasons
           </a>

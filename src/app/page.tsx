@@ -6,19 +6,18 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Intro from "@/components/Intro";
 import CinematicZoom from "@/components/CinematicZoom";
-import ServicesSection from "@/components/ServicesSection";
-import ParallaxBand from "@/components/ParallaxBand";
-import ProcessSection from "@/components/ProcessSection";
 import NurserySection from "@/components/NurserySection";
 import SeasonsSection from "@/components/SeasonsSection";
 import SelectedWork from "@/components/SelectedWork";
 import ContactSection from "@/components/ContactSection";
 import WhatsAppFAB from "@/components/WhatsAppFAB";
 import Footer from "@/components/Footer";
+import GardenMotion from "@/components/motion/GardenMotion";
 
 export default function Home() {
   return (
     <main className="relative min-h-screen bg-[#f4f1ea] text-[#1b2a1f]">
+      <GardenMotion />
       {/* Luxury Opening Reveal Preloader */}
       <Preloader />
 
@@ -37,14 +36,13 @@ export default function Home() {
       {/* Main Content Stream */}
       <div className="relative z-10">
         <Hero />
-        <Intro />
+        <div data-garden-showcase className="garden-showcase">
+          <Intro />
+          <SelectedWork />
+        </div>
         <CinematicZoom />
-        <ServicesSection />
-        <ParallaxBand />
-        <ProcessSection />
         <NurserySection />
         <SeasonsSection />
-        <SelectedWork />
         <ContactSection />
         <Footer />
       </div>

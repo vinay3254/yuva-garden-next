@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { gsap } from "@/components/motion/gsap";
+import { MOTION_OK_QUERY } from "@/components/motion/reducedMotion";
 
 export default function BackgroundShader() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -9,18 +10,19 @@ export default function BackgroundShader() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const mm = gsap.matchMedia();
+    mm.add(MOTION_OK_QUERY, () => {
+      const gl = canvas.getContext("webgl", { alpha: false, antialias: false });
+      if (!gl) return;
 
-    const gl = canvas.getContext("webgl", { alpha: false, antialias: false });
-    if (!gl) return;
-
-    const vs = `
+      const vs = `
       attribute vec2 p;
       void main(){
         gl_Position = vec4(p, 0.0, 1.0);
       }
     `;
 
-    const fs = `
+      const fs = `
       precision mediump float;
       uniform vec2 r;
       uniform float t;
@@ -76,89 +78,96 @@ export default function BackgroundShader() {
       }
     `;
 
-    const createShader = (type: number, src: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, src);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
+      const createShader = (type: number, src: string) => {
+        const shader = gl.createShader(type);
+        if (!shader) return null;
+        gl.shaderSource(shader, src);
+        gl.compileShader(shader);
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+          gl.deleteShader(shader);
+          return null;
+        }
+        return shader;
+      };
 
-    const vertShader = createShader(gl.VERTEX_SHADER, vs);
-    const fragShader = createShader(gl.FRAGMENT_SHADER, fs);
-    if (!vertShader || !fragShader) return;
+      const vertShader = createShader(gl.VERTEX_SHADER, vs);
+      const fragShader = createShader(gl.FRAGMENT_SHADER, fs);
+      if (!vertShader || !fragShader) return;
 
-    const program = gl.createProgram();
-    if (!program) return;
-    gl.attachShader(program, vertShader);
-    gl.attachShader(program, fragShader);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
-    gl.useProgram(program);
+      const program = gl.createProgram();
+      if (!program) return;
+      gl.attachShader(program, vertShader);
+      gl.attachShader(program, fragShader);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
+      gl.useProgram(program);
 
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
-      gl.STATIC_DRAW
-    );
+      const buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+        gl.STATIC_DRAW,
+      );
 
-    const loc = gl.getAttribLocation(program, "p");
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      const loc = gl.getAttribLocation(program, "p");
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
-    const ur = gl.getUniformLocation(program, "r");
-    const ut = gl.getUniformLocation(program, "t");
-    const um = gl.getUniformLocation(program, "m");
-    const us = gl.getUniformLocation(program, "s");
+      const ur = gl.getUniformLocation(program, "r");
+      const ut = gl.getUniformLocation(program, "t");
+      const um = gl.getUniformLocation(program, "m");
+      const us = gl.getUniformLocation(program, "s");
 
-    const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 };
-    const onMouse = (e: MouseEvent) => {
-      mouse.tx = e.clientX / window.innerWidth;
-      mouse.ty = 1 - e.clientY / window.innerHeight;
-    };
-    window.addEventListener("pointermove", onMouse, { passive: true });
+      const mouse = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5 };
+      const onMouse = (e: MouseEvent) => {
+        mouse.tx = e.clientX / window.innerWidth;
+        mouse.ty = 1 - e.clientY / window.innerHeight;
+      };
+      window.addEventListener("pointermove", onMouse, { passive: true });
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5) * 0.6;
-    const resize = () => {
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    };
-    resize();
-    window.addEventListener("resize", resize);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5) * 0.6;
+      const resize = () => {
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      };
+      resize();
+      window.addEventListener("resize", resize);
 
-    const t0 = performance.now();
+      const t0 = performance.now();
 
-    const render = () => {
-      mouse.x += (mouse.tx - mouse.x) * 0.04;
-      mouse.y += (mouse.ty - mouse.y) * 0.04;
+      const render = () => {
+        mouse.x += (mouse.tx - mouse.x) * 0.04;
+        mouse.y += (mouse.ty - mouse.y) * 0.04;
 
-      gl.uniform2f(ur, canvas.width, canvas.height);
-      gl.uniform1f(ut, (performance.now() - t0) / 1000);
-      gl.uniform2f(um, mouse.x, mouse.y);
-      gl.uniform1f(us, window.scrollY);
+        gl.uniform2f(ur, canvas.width, canvas.height);
+        gl.uniform1f(ut, (performance.now() - t0) / 1000);
+        gl.uniform2f(um, mouse.x, mouse.y);
+        gl.uniform1f(us, window.scrollY);
 
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    };
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      };
 
-    gsap.ticker.add(render);
+      gsap.ticker.add(render);
 
-    return () => {
-      gsap.ticker.remove(render);
-      window.removeEventListener("pointermove", onMouse);
-      window.removeEventListener("resize", resize);
-    };
+      return () => {
+        gsap.ticker.remove(render);
+        window.removeEventListener("pointermove", onMouse);
+        window.removeEventListener("resize", resize);
+        gl.deleteBuffer(buffer);
+        gl.deleteProgram(program);
+        gl.deleteShader(vertShader);
+        gl.deleteShader(fragShader);
+      };
+    });
+    return () => mm.revert();
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
+      aria-hidden="true"
       className="fixed inset-0 w-full h-full pointer-events-none z-0"
       style={{ opacity: 0.85 }}
     />

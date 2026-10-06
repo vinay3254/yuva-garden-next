@@ -14,7 +14,7 @@ export default function SeasonsSection() {
       className="py-[14vh] px-[5vw] grid grid-cols-1 md:grid-cols-2 gap-[6vw] items-center"
     >
       <div className="flex flex-col gap-8">
-        <div>
+        <div data-reveal>
           <div className="text-[13px] font-semibold tracking-[0.16em] uppercase text-[#6b5a2e] mb-3">
             Planting in Bangalore
           </div>
@@ -32,6 +32,7 @@ export default function SeasonsSection() {
                 key={s.name}
                 type="button"
                 onClick={() => setActiveSeasonIdx(idx)}
+                aria-pressed={isSelected}
                 className={`font-sans-hanken text-[15px] font-semibold px-5 py-2.5 rounded-full border border-[#1b2a1f] transition-all cursor-pointer ${
                   isSelected
                     ? "bg-[#1b2a1f] text-[#f4f1ea]"
@@ -76,6 +77,7 @@ export default function SeasonsSection() {
               key={s.name}
               src={s.image}
               alt={s.name}
+              loading="lazy"
               className={`absolute inset-0 w-full h-full object-cover transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                 isSelected
                   ? "opacity-100 scale-100"

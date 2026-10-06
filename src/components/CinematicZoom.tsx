@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { ScrollTrigger } from "@/components/motion/gsap";
+import { gsap, ScrollTrigger } from "@/components/motion/gsap";
 import { useGsap } from "@/components/motion/useGsap";
+import { MOTION_OK_QUERY } from "@/components/motion/reducedMotion";
 
 export default function CinematicZoom() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -12,47 +13,60 @@ export default function CinematicZoom() {
   const capRef = useRef<HTMLDivElement | null>(null);
 
   useGsap(() => {
-    const apply = (progress: number) => {
-      // smooth ease: p * p * (3 - 2 * p)
-      const ease = progress * progress * (3 - 2 * progress);
+    const mm = gsap.matchMedia();
+    mm.add(MOTION_OK_QUERY, () => {
+      const apply = (progress: number) => {
+        // smooth ease: p * p * (3 - 2 * p)
+        const ease = progress * progress * (3 - 2 * progress);
 
-      const frame = frameRef.current;
-      if (frame) {
-        const insetX = ease * 22;
-        const insetY = ease * 14;
-        const round = ease * 24;
-        frame.style.clipPath = `inset(${insetY}% ${insetX}% round ${round}px)`;
-      }
+        const frame = frameRef.current;
+        if (frame) {
+          const insetX = ease * 22;
+          const insetY = ease * 14;
+          const round = ease * 24;
+          frame.style.clipPath = `inset(${insetY}% ${insetX}% round ${round}px)`;
+        }
 
-      const img = imgRef.current;
-      if (img) {
-        img.style.transform = `scale(${1.25 - ease * 0.25})`;
-      }
+        const img = imgRef.current;
+        if (img) {
+          img.style.transform = `scale(${1.25 - ease * 0.25})`;
+        }
 
-      const txt = txtRef.current;
-      if (txt) {
-        txt.style.opacity = String(Math.max(0, 1 - (progress - 0.45) * 3));
-        txt.style.transform = `scale(${1 - ease * 0.15})`;
-      }
+        const txt = txtRef.current;
+        if (txt) {
+          txt.style.opacity = String(Math.max(0, 1 - (progress - 0.45) * 3));
+          txt.style.transform = `scale(${1 - ease * 0.15})`;
+        }
 
-      const cap = capRef.current;
-      if (cap) {
-        cap.style.opacity = String(Math.max(0, (progress - 0.6) * 2.5));
-      }
-    };
+        const cap = capRef.current;
+        if (cap) {
+          cap.style.opacity = String(Math.max(0, (progress - 0.6) * 2.5));
+        }
+      };
 
-    const st = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top top",
-      end: "bottom bottom",
-      onUpdate: (self) => apply(self.progress),
-      onRefresh: (self) => apply(self.progress),
+      const st = ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: "top top",
+        end: "bottom bottom",
+        onUpdate: (self) => apply(self.progress),
+        onRefresh: (self) => apply(self.progress),
+      });
+      apply(st.progress);
+      return () => {
+        frameRef.current?.style.removeProperty("clip-path");
+        imgRef.current?.style.removeProperty("transform");
+        txtRef.current?.style.removeProperty("opacity");
+        txtRef.current?.style.removeProperty("transform");
+        capRef.current?.style.removeProperty("opacity");
+      };
     });
-    apply(st.progress);
   }, containerRef);
 
   return (
-    <section ref={containerRef} className="h-[250vh] relative">
+    <section
+      ref={containerRef}
+      className="cinematic-section h-[250vh] relative motion-reduce:h-screen"
+    >
       <div className="sticky top-0 h-screen overflow-hidden flex items-center justify-center">
         {/* Dynamic Zooming & Clipping Frame */}
         <div
@@ -64,6 +78,7 @@ export default function CinematicZoom() {
             ref={imgRef}
             src="https://images.unsplash.com/photo-1595387426463-bef727e35bb3?auto=format&fit=crop&w=2200&q=72"
             alt="Lush estate lawn and trees around a serene water fountain"
+            loading="lazy"
             className="w-full h-full object-cover will-change-transform"
             style={{ transform: "scale(1.25)" }}
           />

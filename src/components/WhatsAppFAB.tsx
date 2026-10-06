@@ -11,12 +11,17 @@ export default function WhatsAppFAB() {
   const fabRef = useRef<HTMLAnchorElement | null>(null);
 
   useGsap(() => {
-    const update = (y: number) => setVisible(y > window.innerHeight * 0.7);
+    const update = (y: number) => {
+      const heroHeight =
+        document.getElementById("top")?.offsetHeight ?? window.innerHeight;
+      setVisible(y > heroHeight - window.innerHeight * 0.3);
+    };
 
     ScrollTrigger.create({
       start: 0,
       end: "max",
       onUpdate: (self) => update(self.scroll()),
+      onRefresh: (self) => update(self.scroll()),
     });
     update(window.scrollY);
   }, fabRef);
@@ -24,10 +29,13 @@ export default function WhatsAppFAB() {
   return (
     <a
       ref={fabRef}
-      href={getWhatsAppUrl("Hi Yuva Garden Group, I would like to chat with you about my garden.")}
+      href={getWhatsAppUrl(
+        "Hi Yuva Garden Group, I would like to chat with you about my garden.",
+      )}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"
+      tabIndex={visible ? 0 : -1}
       className={`fixed right-6 bottom-6 z-40 flex items-center gap-2.5 bg-[#1b2a1f] text-[#f4f1ea] px-5 py-3.5 rounded-full text-sm font-semibold shadow-[0_10px_30px_rgba(15,22,17,0.25)] transition-all duration-400 hover:bg-[#6b5a2e] active:scale-95 border border-[#33463a] ${
         visible
           ? "opacity-100 translate-y-0 pointer-events-auto"

@@ -3,13 +3,17 @@
 import { useRef, type HTMLAttributes, type ReactNode } from "react";
 import { gsap } from "@/components/motion/gsap";
 import { useGsap } from "@/components/motion/useGsap";
-import { HOVER_MOTION_QUERY, MOTION_OK_QUERY } from "@/components/motion/reducedMotion";
+import {
+  HOVER_MOTION_QUERY,
+  MOTION_OK_QUERY,
+} from "@/components/motion/reducedMotion";
 
 interface LusionCardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   index?: number;
   className?: string;
   glowColor?: string;
+  reveal?: boolean;
 }
 
 export default function LusionCard({
@@ -17,6 +21,7 @@ export default function LusionCard({
   index = 0,
   className = "",
   glowColor = "rgba(255, 255, 255, 0.25)",
+  reveal = true,
   style,
   ...props
 }: LusionCardProps) {
@@ -30,6 +35,7 @@ export default function LusionCard({
     const mm = gsap.matchMedia();
 
     mm.add(MOTION_OK_QUERY, () => {
+      if (!reveal) return;
       gsap.from(wrap, {
         y: 80,
         opacity: 0,
@@ -43,8 +49,16 @@ export default function LusionCard({
     mm.add(HOVER_MOTION_QUERY, () => {
       // Pointer input only writes CSS variables; the stylesheet turns them into
       // tilt, lift, glow and image counter-motion. No React state per frame.
-      gsap.set(card, { "--rx": 0, "--ry": 0, "--mx": 0, "--my": 0, "--glow": 0, "--lift": 0 });
-      const to = (prop: string) => gsap.quickTo(card, prop, { duration: 0.6, ease: "power3.out" });
+      gsap.set(card, {
+        "--rx": 0,
+        "--ry": 0,
+        "--mx": 0,
+        "--my": 0,
+        "--glow": 0,
+        "--lift": 0,
+      });
+      const to = (prop: string) =>
+        gsap.quickTo(card, prop, { duration: 0.6, ease: "power3.out" });
       const rx = to("--rx");
       const ry = to("--ry");
       const mx = to("--mx");
@@ -53,11 +67,19 @@ export default function LusionCard({
       const lift = to("--lift");
 
       const onMove = (e: PointerEvent) => {
-        const r = card.getBoundingClientRect();
-        const x = (e.clientX - r.left) / r.width - 0.5;
-        const y = (e.clientY - r.top) / r.height - 0.5;
-        rx(-y * 14);
-        ry(x * 14);
+        const r = wrap.getBoundingClientRect();
+        const x = gsap.utils.clamp(
+          -0.5,
+          0.5,
+          (e.clientX - r.left) / r.width - 0.5,
+        );
+        const y = gsap.utils.clamp(
+          -0.5,
+          0.5,
+          (e.clientY - r.top) / r.height - 0.5,
+        );
+        rx(-y * 9);
+        ry(x * 9);
         mx(x);
         my(y);
         glow(1);
@@ -98,7 +120,7 @@ export default function LusionCard({
             background: `radial-gradient(circle 300px at calc(50% + var(--mx, 0) * 100%) calc(50% + var(--my, 0) * 100%), ${glowColor}, transparent 70%)`,
           }}
         />
-        <div className="relative z-10 h-full flex flex-col [transform:translateZ(60px)]">
+        <div className="relative z-10 h-full flex flex-col [transform:translateZ(var(--content-depth,60px))]">
           {children}
         </div>
       </div>

@@ -1,196 +1,197 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { growthStages, getWhatsAppUrl, DISPLAY_PHONE } from "@/data/content";
+import { useRef } from "react";
+import Image from "next/image";
+import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { gsap } from "@/components/motion/gsap";
+import { useGsap } from "@/components/motion/useGsap";
+import {
+  HOVER_MOTION_QUERY,
+  MOTION_OK_QUERY,
+} from "@/components/motion/reducedMotion";
 
 export default function Hero() {
-  const [currentProgress, setCurrentProgress] = useState(0); // 0 to 1
-  const [hasInteracted, setHasInteracted] = useState(false);
-  const containerRef = useRef<HTMLElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
 
-  const numStages = growthStages.length;
-  // Calculate active stage index
-  const stageIndex = Math.min(
-    numStages - 1,
-    Math.max(0, Math.round(currentProgress * (numStages - 1)))
-  );
-  const activeStage = growthStages[stageIndex];
+  useGsap(() => {
+    const root = sectionRef.current;
+    if (!root) return;
+    const mm = gsap.matchMedia();
 
-  useEffect(() => {
-    let target = 0;
-    let cur = 0;
+    mm.add(MOTION_OK_QUERY, () => {
+      const entrance = gsap.timeline({ delay: 1.35 });
+      entrance.from("[data-hero-line]", {
+        yPercent: 110,
+        rotate: 3,
+        duration: 1.1,
+        stagger: 0.12,
+        ease: "expo.out",
+      });
+      entrance.from(
+        "[data-hero-detail]",
+        { y: 18, opacity: 0, duration: 0.8, stagger: 0.08 },
+        0.3,
+      );
+      entrance.from(
+        "[data-hero-entrance]",
+        { y: 50, scale: 0.9, opacity: 0, duration: 1.3, ease: "power3.out" },
+        0,
+      );
 
-    const clamp = (v: number, min: number, max: number) =>
-      Math.min(max, Math.max(min, v));
+      // Separate wrappers let scroll, pointer and breeze move independently.
+      gsap.to("[data-hero-landscape]", {
+        yPercent: 18,
+        rotate: -3,
+        scale: 0.94,
+        ease: "none",
+        scrollTrigger: {
+          id: "garden-hero",
+          trigger: root,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.8,
+        },
+      });
+      gsap.to("[data-hero-copy]", {
+        y: -65,
+        ease: "none",
+        scrollTrigger: {
+          trigger: root,
+          start: "top top",
+          end: "bottom top",
+          scrub: 0.8,
+        },
+      });
 
-    const onWheel = (e: WheelEvent) => {
-      if (window.scrollY > 2) return;
-      if (e.deltaY > 0 && target >= 1) return;
-      if (e.deltaY < 0 && target <= 0) return;
+      const scene = root.querySelector<HTMLElement>("[data-hero-breeze]");
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (scene)
+            scene.style.animationPlayState = entry.isIntersecting
+              ? "running"
+              : "paused";
+        },
+        { threshold: 0 },
+      );
+      observer.observe(root);
+      return () => {
+        observer.disconnect();
+        if (scene) scene.style.removeProperty("animation-play-state");
+      };
+    });
 
-      const dist = window.innerWidth < 760 ? 1200 : 2000;
-      target = clamp(target + (e.deltaY * (e.deltaMode === 1 ? 40 : 1)) / dist, 0, 1);
-      if (target > 0.01) setHasInteracted(true);
-      if (target < 0.99) {
-        e.preventDefault();
-        // Keep Lenis (listening on window) from also scrolling the page.
-        e.stopPropagation();
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("wheel", onWheel, { passive: false });
-    }
-
-    const loop = () => {
-      cur += (target - cur) * 0.1;
-      if (Math.abs(target - cur) < 0.001) cur = target;
-      setCurrentProgress(cur);
-    };
-    gsap.ticker.add(loop);
-
-    return () => {
-      if (container) {
-        container.removeEventListener("wheel", onWheel);
-      }
-      gsap.ticker.remove(loop);
-    };
-  }, []);
-
-  // Title 1 fades out, Title 2 fades in
-  const t1 = Math.max(0, 1 - currentProgress / 0.28);
-  const t2 = Math.min(1, Math.max(0, (currentProgress - 0.72) / 0.28));
+    mm.add(HOVER_MOTION_QUERY, () => {
+      const scene = root.querySelector<HTMLElement>("[data-hero-pointer]");
+      if (!scene) return;
+      const xTo = gsap.quickTo(scene, "x", {
+        duration: 1.1,
+        ease: "power3.out",
+      });
+      const yTo = gsap.quickTo(scene, "y", {
+        duration: 1.1,
+        ease: "power3.out",
+      });
+      const rotateTo = gsap.quickTo(scene, "rotate", {
+        duration: 1.1,
+        ease: "power3.out",
+      });
+      const move = (event: PointerEvent) => {
+        const rect = root.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        xTo(x * 30);
+        yTo(y * 20);
+        rotateTo(x * 2);
+      };
+      const reset = () => {
+        xTo(0);
+        yTo(0);
+        rotateTo(0);
+      };
+      root.addEventListener("pointermove", move);
+      root.addEventListener("pointerleave", reset);
+      return () => {
+        root.removeEventListener("pointermove", move);
+        root.removeEventListener("pointerleave", reset);
+      };
+    });
+  }, sectionRef);
 
   return (
-    <section
-      id="top"
-      ref={containerRef}
-      className="relative h-screen min-h-[560px] overflow-hidden bg-[#0f1611] select-none"
-    >
-      {/* 5 Growth Layers with Cross-Fade & Gentle Scale */}
-      <div className="absolute inset-0 transform-gpu">
-        {growthStages.map((stage, k) => {
-          const factor = currentProgress * (numStages - 1);
-          const opacity = k === 0 ? 1 : Math.min(1, Math.max(0, factor - k + 1));
-          const scale = 1.18 - 0.18 * Math.min(1, Math.max(0, (factor - k + 1) / 2));
+    <section id="top" ref={sectionRef} className="garden-hero botanical-hero">
+      <div className="hero-aura" aria-hidden="true" />
 
-          return (
-            <div
-              key={stage.id}
-              className="absolute inset-0 transition-opacity duration-300 ease-out will-change-[opacity,transform]"
-              style={{ opacity }}
-            >
-              <img
-                src={stage.img}
-                alt={stage.alt}
-                className="w-full h-full object-cover block will-change-transform"
-                style={{ transform: `scale(${scale.toFixed(4)})` }}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Cinematic Dark Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0f1611]/55 via-transparent via-35% to-[#0f1611]/75 pointer-events-none" />
-
-      {/* Title 1: "Gardens, designed and grown." */}
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center gap-5 text-center text-[#f4f1ea] px-6 pointer-events-none transition-all duration-300"
-        style={{
-          opacity: t1,
-          transform: `translateY(${(1 - t1) * -30}px) scale(${0.96 + t1 * 0.04})`,
-          filter: `blur(${(1 - t1) * 8}px)`,
-        }}
-      >
-        <div className="text-xs md:text-[13px] font-semibold tracking-[0.22em] uppercase text-[#e9e4d8]">
-          Yuva Garden Group · Bangalore
-        </div>
-        <h1 className="font-serif-bodoni font-normal text-[clamp(48px,8vw,128px)] leading-none tracking-[-0.02em] m-0 drop-shadow-md">
-          Gardens, designed
-          <br />
-          <i className="italic">and grown.</i>
-        </h1>
-      </div>
-
-      {/* Title 2: "From bare soil to your garden." with CTAs */}
-      <div
-        className="absolute inset-0 flex flex-col items-center justify-center gap-7 text-center text-[#f4f1ea] px-6 transition-all duration-300"
-        style={{
-          opacity: t2,
-          transform: `translateY(${(1 - t2) * 24}px) scale(${0.97 + t2 * 0.03})`,
-          filter: `blur(${(1 - t2) * 6}px)`,
-          pointerEvents: t2 > 0.8 ? "auto" : "none",
-        }}
-      >
-        <p className="font-serif-bodoni text-[clamp(34px,5vw,80px)] leading-[1.05] m-0 tracking-[-0.015em] drop-shadow-md">
-          From bare soil
-          <br />
-          <i className="italic">to your garden.</i>
+      <div data-hero-copy className="botanical-copy">
+        <p data-hero-detail className="hero-eyebrow">
+          <span className="hero-status-dot" />
+          Rooted in Bangalore. Grown with care.
         </p>
-        <div className="flex gap-3 flex-wrap justify-center">
-          <a
-            href="tel:+910000000000"
-            className="bg-[#f4f1ea] text-[#1b2a1f] px-7 py-3.5 rounded-full font-semibold text-[15px] transition-all hover:bg-[#d9cfb4] hover:scale-105 active:scale-95 shadow-lg"
-          >
-            Call us
+        <h1 className="botanical-title">
+          <span className="hero-line-mask">
+            <span data-hero-line>Make room</span>
+          </span>
+          <span className="hero-line-mask">
+            <span data-hero-line>
+              for <i>life.</i>
+            </span>
+          </span>
+        </h1>
+        <p data-hero-detail className="botanical-description">
+          A quiet corner. A greener everyday.
+          <br />
+          Gardens made for the way you live.
+        </p>
+        <div data-hero-detail className="hero-actions">
+          <a data-magnetic href="#contact" className="hero-grow-link">
+            <span data-magnetic-inner>
+              Let&apos;s grow your garden <ArrowUpRight size={18} />
+            </span>
           </a>
-          <a
-            href={getWhatsAppUrl("Hi Yuva Garden Group, I would like to enquire about your services.")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-[#f4f1ea] bg-[#1b2a1f]/40 backdrop-blur-xs text-[#f4f1ea] px-7 py-3.5 rounded-full font-semibold text-[15px] transition-all hover:bg-[#f4f1ea] hover:text-[#1b2a1f] hover:scale-105 active:scale-95 shadow-lg"
-          >
-            WhatsApp
+          <a href="#work" className="hero-work-link">
+            Explore our gardens <ArrowUpRight size={16} />
           </a>
         </div>
       </div>
 
-      {/* Bottom Stage Indicator */}
-      <div className="absolute left-[5vw] bottom-[clamp(24px,6vh,48px)] flex items-baseline gap-3 text-[#f4f1ea] pointer-events-none z-10">
-        <span className="font-serif-bodoni text-3xl font-medium">
-          {activeStage.id}
+      <div className="botanical-scene" aria-hidden="true">
+        <svg className="hero-orbit" viewBox="0 0 800 800" fill="none">
+          <circle cx="400" cy="400" r="337" />
+          <circle cx="400" cy="400" r="350" strokeDasharray="1 16" />
+        </svg>
+        <div data-hero-landscape className="hero-landscape">
+          <div data-hero-entrance className="hero-scene-layer">
+            <div data-hero-pointer className="hero-scene-layer">
+              <div data-hero-breeze className="hero-scene-layer hero-breeze">
+                <Image
+                  src="/images/garden-island.webp"
+                  alt=""
+                  fill
+                  sizes="(max-width: 767px) 100vw, 60vw"
+                  loading="eager"
+                  fetchPriority="high"
+                  className="hero-island-image"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <span data-hero-detail className="hero-specimen-label">
+          A little earth. A whole new world.
+          <span>01 / Living landscapes</span>
         </span>
-        <span className="text-xs md:text-[13px] font-semibold tracking-[0.18em] uppercase text-[#e9e4d8]">
-          {activeStage.label}
+      </div>
+
+      <div className="botanical-footer" data-hero-detail>
+        <a href="#about" className="hero-scroll-link">
+          <span>
+            <ArrowDown size={18} />
+          </span>
+          Scroll to grow
+        </a>
+        <p>From the first seed to the last detail.</p>
+        <span className="hero-footer-note">
+          Landscape design · Nursery · Care
         </span>
-      </div>
-
-      {/* Clickable Stage Dots for direct interaction */}
-      <div className="absolute right-[5vw] bottom-[clamp(24px,6vh,48px)] flex items-center gap-2 z-10">
-        {growthStages.map((stage, idx) => (
-          <button
-            key={stage.id}
-            type="button"
-            onClick={() => setCurrentProgress(idx / (numStages - 1))}
-            className={`transition-all duration-300 rounded-full cursor-pointer ${
-              idx === stageIndex
-                ? "w-8 h-2 bg-[#c9b88a]"
-                : "w-2 h-2 bg-white/40 hover:bg-white/80"
-            }`}
-            aria-label={`Jump to stage ${stage.label}`}
-          />
-        ))}
-      </div>
-
-      {/* Scroll Hint */}
-      <div
-        className={`absolute left-1/2 -translate-x-1/2 bottom-[clamp(24px,6vh,48px)] flex flex-col items-center gap-1.5 text-[#f4f1ea] text-xs font-semibold tracking-[0.3em] transition-opacity duration-500 pointer-events-none z-10 ${
-          hasInteracted || currentProgress > 0.05 ? "opacity-0" : "opacity-90 animate-bounce"
-        }`}
-      >
-        <span>SCROLL</span>
-        <span className="text-sm">↓</span>
-      </div>
-
-      {/* Bottom Progress Bar */}
-      <div className="absolute left-0 right-0 bottom-0 h-[2px] bg-[#f4f1ea]/20 z-10">
-        <div
-          className="h-full bg-[#c9b88a] origin-left transition-transform duration-75"
-          style={{ transform: `scaleX(${currentProgress.toFixed(4)})` }}
-        />
       </div>
     </section>
   );

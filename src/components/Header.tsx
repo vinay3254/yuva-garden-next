@@ -34,11 +34,9 @@ export default function Header() {
   }, headerRef);
 
   const navLinks = [
-    { label: "Services", href: "#services" },
-    { label: "Process", href: "#process" },
+    { label: "Work", href: "#work" },
     { label: "Nursery", href: "#nursery" },
     { label: "Seasons", href: "#seasons" },
-    { label: "Work", href: "#work" },
   ];
 
   return (
@@ -49,7 +47,7 @@ export default function Header() {
       } ${
         scrolled
           ? "py-3 bg-[#f4f1ea]/90 backdrop-blur-md text-[#1b2a1f] border-b border-[#d8d1c0] shadow-xs"
-          : "py-6 bg-transparent text-[#f4f1ea] border-b border-transparent"
+          : "py-6 bg-transparent text-[#1b2a1f] border-b border-transparent"
       }`}
     >
       <a
@@ -72,7 +70,7 @@ export default function Header() {
         ))}
         <a
           href="#contact"
-          className="border border-current px-5 py-2 rounded-full transition-all hover:bg-current hover:text-[#f4f1ea] hover:border-transparent text-sm font-semibold tracking-wide"
+          className="border border-current px-5 py-2 rounded-full transition-all hover:bg-[#1b2a1f] hover:text-[#f4f1ea] hover:border-transparent text-sm font-semibold tracking-wide"
         >
           Contact
         </a>
