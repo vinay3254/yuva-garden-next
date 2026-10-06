@@ -1,50 +1,38 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { catalogItems, CatalogItem, getWhatsAppUrl } from "@/data/content";
 import { Search, X, Check, ArrowRight } from "lucide-react";
 import LusionCard from "@/components/LusionCard";
+import FoldStack from "@/components/motion/FoldStack";
+
+const CATEGORY_ORDER: CatalogItem["cat"][] = ["Plants", "Services", "Supplies"];
 
 export default function CatalogSection() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedList, setSelectedList] = useState<string[]>([]);
   const [activeDetailItem, setActiveDetailItem] = useState<CatalogItem | null>(null);
 
-  const categories = ["All", "Plants", "Services", "Supplies"];
-
-  // Filtered Items
   const filteredItems = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return catalogItems.filter((item) => {
-      const matchesCategory =
-        selectedCategory === "All" || item.cat === selectedCategory;
-      const matchesQuery =
-        !q ||
-        (item.name + " " + item.note + " " + item.desc).toLowerCase().includes(q);
-      return matchesCategory && matchesQuery;
-    });
-  }, [selectedCategory, searchQuery]);
+    return catalogItems.filter(
+      (item) => !q || (item.name + " " + item.note + " " + item.desc).toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
+  const groups = useMemo(
+    () =>
+      CATEGORY_ORDER.map((cat) => ({
+        cat,
+        items: filteredItems.filter((item) => item.cat === cat),
+      })).filter((group) => group.items.length > 0),
+    [filteredItems]
+  );
 
   const toggleListItem = (name: string) => {
     setSelectedList((prev) =>
       prev.includes(name) ? prev.filter((i) => i !== name) : [...prev, name]
     );
-  };
-
-  const handleTilt = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.transform = `translateY(-10px) scale(1.02) rotateX(${-y * 10}deg) rotateY(${x * 10}deg)`;
-    el.style.boxShadow = "0 30px 60px rgba(0,0,0,0.45)";
-  };
-
-  const handleUntilt = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = e.currentTarget;
-    el.style.transform = "none";
-    el.style.boxShadow = "0 2px 0 rgba(0,0,0,0.1)";
   };
 
   const whatsappListUrl = useMemo(() => {
@@ -65,48 +53,23 @@ export default function CatalogSection() {
         </p>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex justify-between items-center gap-4 flex-wrap mb-9 pb-6 border-b border-[#33463a]">
-        {/* Category Pills */}
-        <div className="flex gap-2 flex-wrap">
-          {categories.map((cat) => {
-            const count =
-              cat === "All"
-                ? catalogItems.length
-                : catalogItems.filter((i) => i.cat === cat).length;
-            const isSelected = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`font-sans-hanken text-sm font-semibold px-4 py-2 rounded-full border transition-all duration-300 flex items-center gap-2 cursor-pointer ${
-                  isSelected
-                    ? "bg-[#f4f1ea] text-[#1b2a1f] border-[#f4f1ea]"
-                    : "bg-transparent text-[#f4f1ea] border-[#4a5e50] hover:border-[#f4f1ea]"
-                }`}
-              >
-                <span>{cat}</span>
-                <span className="text-xs opacity-60 font-mono">{count}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Search Input */}
-        <label className="flex items-center gap-2.5 bg-[#24362a] border border-[#33463a] rounded-full px-4 py-1 min-w-[260px] flex-0 md:flex-1 md:max-w-[320px]">
+      {/* Search */}
+      <div className="flex justify-end mb-9 pb-6 border-b border-[#33463a]">
+        <label className="flex items-center gap-2.5 bg-[#24362a] border border-[#33463a] rounded-full px-4 py-1 min-w-[260px] w-full md:max-w-[320px]">
           <Search size={16} className="text-[#a9b3a8]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search plants, services…"
+            aria-label="Search the catalog"
             className="w-full bg-transparent border-0 outline-hidden text-[#f4f1ea] placeholder-[#a9b3a8] text-sm py-2"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
               className="text-[#a9b3a8] hover:text-[#f4f1ea]"
             >
               <X size={14} />
@@ -122,94 +85,113 @@ export default function CatalogSection() {
         </div>
       )}
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredItems.map((item, index) => {
-          const isAdded = selectedList.includes(item.name);
-          return (
-            <LusionCard
-              key={item.id}
-              index={index}
-              className={`bg-[#f4f1ea] text-[#1b2a1f] rounded-[22px] flex flex-col ${
-                isAdded ? "ring-2 ring-[#c9b88a] ring-offset-2 ring-offset-[#1b2a1f]" : ""
-              }`}
-            >
-              {/* Card Image */}
-              <div
-                onClick={() => setActiveDetailItem(item)}
-                className="aspect-[5/4] overflow-hidden relative cursor-pointer group rounded-t-[22px]"
-              >
-                <img
-                  src={item.img}
-                  alt={item.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <span
-                  className="absolute left-3.5 top-3.5 text-xs font-semibold px-3 py-1 rounded-full shadow-xs text-[#1b2a1f]"
-                  style={{ backgroundColor: item.tagBg }}
-                >
-                  {item.tag}
-                </span>
-                <span className="absolute right-3.5 top-3.5 bg-[#f4f1ea]/90 backdrop-blur-xs text-[#1b2a1f] text-xs font-semibold px-3 py-1 rounded-full shadow-xs opacity-90 group-hover:opacity-100 transition-opacity">
-                  Details
-                </span>
-              </div>
+      {/* Category Fold Stack */}
+      <FoldStack refreshKey={searchQuery}>
+        {groups.map(({ cat, items }) => (
+          <div
+            key={cat}
+            className="bg-[#24362a] border border-[#33463a] rounded-[28px] p-5 md:p-8 min-h-[72vh]"
+          >
+            <div className="flex justify-between items-baseline gap-4 mb-6">
+              <h3 className="font-serif-bodoni font-normal text-[clamp(32px,3.6vw,56px)] leading-none m-0">
+                {cat}
+              </h3>
+              <span className="font-mono text-sm text-[#a9b3a8]">
+                {items.length} {items.length === 1 ? "item" : "items"}
+              </span>
+            </div>
 
-              {/* Card Body */}
-              <div className="p-5 flex flex-col gap-3.5 flex-1">
-                <div>
-                  <div className="font-serif-bodoni text-2xl leading-[1.1] font-medium">
-                    {item.name}
-                  </div>
-                  <div className="text-[13px] text-[#5d6a60] mt-1">{item.note}</div>
-                </div>
-
-                {/* Facts Badges */}
-                <div className="flex gap-1.5 flex-wrap mt-auto pt-2">
-                  {item.facts.map((fact) => (
-                    <span
-                      key={fact}
-                      className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#e9e4d8] text-[#3c4a40]"
-                    >
-                      {fact}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleListItem(item.name)}
-                    className={`flex-1 text-sm font-semibold py-2.5 px-3.5 rounded-full border border-[#1b2a1f] transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
-                      isAdded
-                        ? "bg-[#1b2a1f] text-[#f4f1ea]"
-                        : "bg-transparent text-[#1b2a1f] hover:bg-[#1b2a1f]/10"
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {items.map((item, index) => {
+                const isAdded = selectedList.includes(item.name);
+                return (
+                  <LusionCard
+                    key={item.id}
+                    index={index}
+                    className={`bg-[#f4f1ea] text-[#1b2a1f] rounded-[22px] flex flex-col ${
+                      isAdded ? "ring-2 ring-[#c9b88a] ring-offset-2 ring-offset-[#24362a]" : ""
                     }`}
                   >
-                    {isAdded ? (
-                      <>
-                        <Check size={14} /> Added
-                      </>
-                    ) : (
-                      "+ Add to list"
-                    )}
-                  </button>
-                  <a
-                    href={getWhatsAppUrl(`Hi, I am interested in: ${item.name}`)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Ask about ${item.name} on WhatsApp`}
-                    className="w-11 h-11 shrink-0 rounded-full bg-[#1b2a1f] text-[#f4f1ea] flex items-center justify-center text-lg transition-colors hover:bg-[#6b5a2e]"
-                  >
-                    <ArrowRight size={18} />
-                  </a>
-                </div>
-              </div>
-            </LusionCard>
-          );
-        })}
-      </div>
+                    {/* Card Image */}
+                    <div
+                      onClick={() => setActiveDetailItem(item)}
+                      className="aspect-[5/4] overflow-hidden relative cursor-pointer group rounded-t-[22px]"
+                    >
+                      <img
+                        data-depth="img"
+                        src={item.img}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <span
+                        className="absolute left-3.5 top-3.5 text-xs font-semibold px-3 py-1 rounded-full shadow-xs text-[#1b2a1f]"
+                        style={{ backgroundColor: item.tagBg }}
+                      >
+                        {item.tag}
+                      </span>
+                      <span className="absolute right-3.5 top-3.5 bg-[#f4f1ea]/90 backdrop-blur-xs text-[#1b2a1f] text-xs font-semibold px-3 py-1 rounded-full shadow-xs opacity-90 group-hover:opacity-100 transition-opacity">
+                        Details
+                      </span>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-5 flex flex-col gap-3.5 flex-1">
+                      <div>
+                        <div className="font-serif-bodoni text-2xl leading-[1.1] font-medium">
+                          {item.name}
+                        </div>
+                        <div className="text-[13px] text-[#5d6a60] mt-1">{item.note}</div>
+                      </div>
+
+                      {/* Facts Badges */}
+                      <div className="flex gap-1.5 flex-wrap mt-auto pt-2">
+                        {item.facts.map((fact) => (
+                          <span
+                            key={fact}
+                            className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#e9e4d8] text-[#3c4a40]"
+                          >
+                            {fact}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleListItem(item.name)}
+                          className={`flex-1 text-sm font-semibold py-2.5 px-3.5 rounded-full border border-[#1b2a1f] transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+                            isAdded
+                              ? "bg-[#1b2a1f] text-[#f4f1ea]"
+                              : "bg-transparent text-[#1b2a1f] hover:bg-[#1b2a1f]/10"
+                          }`}
+                        >
+                          {isAdded ? (
+                            <>
+                              <Check size={14} /> Added
+                            </>
+                          ) : (
+                            "+ Add to list"
+                          )}
+                        </button>
+                        <a
+                          href={getWhatsAppUrl(`Hi, I am interested in: ${item.name}`)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`Ask about ${item.name} on WhatsApp`}
+                          className="w-11 h-11 shrink-0 rounded-full bg-[#1b2a1f] text-[#f4f1ea] flex items-center justify-center text-lg transition-colors hover:bg-[#6b5a2e]"
+                        >
+                          <ArrowRight size={18} />
+                        </a>
+                      </div>
+                    </div>
+                  </LusionCard>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </FoldStack>
 
       {/* Detail Modal Dialog */}
       {activeDetailItem && (
