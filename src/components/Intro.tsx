@@ -60,13 +60,13 @@ export default function Intro() {
         }
       );
       const giant = { trigger: "[data-giant]", start: "top bottom", end: "bottom top", scrub: true };
-      gsap.fromTo("[data-giant-word='left']", { xPercent: 20 }, { xPercent: -10, ease: "none", scrollTrigger: giant });
-      gsap.fromTo("[data-giant-word='right']", { xPercent: -20 }, { xPercent: 10, ease: "none", scrollTrigger: giant });
+      gsap.fromTo("[data-giant-word='left']", { xPercent: 12 }, { xPercent: -4, ease: "none", scrollTrigger: giant });
+      gsap.fromTo("[data-giant-word='right']", { xPercent: -12 }, { xPercent: 4, ease: "none", scrollTrigger: giant });
     });
   }, sectionRef);
 
   return (
-    <section ref={sectionRef} className="relative min-h-[160vh] pt-[12vh] px-[5vw] overflow-x-clip">
+    <section ref={sectionRef} className="relative pt-[12vh] pb-[8vh] px-[5vw] overflow-x-clip">
       <svg
         aria-hidden="true"
         viewBox="0 0 1600 1600"
@@ -130,7 +130,7 @@ export default function Intro() {
       <div
         data-giant
         aria-hidden="true"
-        className="relative z-[1] mt-[8vh] flex justify-around whitespace-nowrap font-serif-bodoni text-[clamp(80px,15vw,260px)] leading-[0.9] tracking-[-0.02em] text-transparent [-webkit-text-stroke:1px_rgba(27,42,31,0.18)]"
+        className="relative z-[1] mt-[14vh] flex justify-between gap-[4vw] whitespace-nowrap font-serif-bodoni text-[clamp(56px,10.5vw,190px)] leading-[0.9] tracking-[-0.02em] text-transparent [-webkit-text-stroke:1px_rgba(27,42,31,0.18)]"
       >
         <span data-giant-word="left" className="inline-block">OUR</span>
         <span data-giant-word="right" className="inline-block">GARDENS</span>
