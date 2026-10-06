@@ -52,3 +52,15 @@ a {
   background: #6b5a2e;
   color: #f4f1ea;
 }
+
+/* LusionCard depth: variables are written by GSAP quickTo (see LusionCard.tsx) */
+[data-depth-card] {
+  transform: translateY(calc(var(--lift, 0) * -12px)) scale(calc(1 + var(--lift, 0) * 0.03))
+    rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
+  box-shadow: 0 calc(4px + var(--lift, 0) * 31px) calc(20px + var(--lift, 0) * 50px)
+    calc(-2px - var(--lift, 0) * 13px) rgba(0, 0, 0, calc(0.1 + var(--lift, 0) * 0.35));
+}
+
+[data-depth-card] [data-depth="img"] {
+  transform: translate3d(calc(var(--mx, 0) * -18px), calc(var(--my, 0) * -18px), 0) scale(1.08);
+}

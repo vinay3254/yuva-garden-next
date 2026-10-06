@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useRef, type HTMLAttributes, type ReactNode } from "react";
+import { gsap } from "@/components/motion/gsap";
+import { useGsap } from "@/components/motion/useGsap";
+import { HOVER_MOTION_QUERY, MOTION_OK_QUERY } from "@/components/motion/reducedMotion";
 
-interface LusionCardProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
+interface LusionCardProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
   index?: number;
   className?: string;
   glowColor?: string;
@@ -17,117 +20,85 @@ export default function LusionCard({
   style,
   ...props
 }: LusionCardProps) {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-  // Scroll-triggered spring pop entrance
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
+  useGsap(() => {
+    const wrap = wrapRef.current;
+    const card = cardRef.current;
+    if (!wrap || !card) return;
+    const mm = gsap.matchMedia();
 
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.95) {
-      setIsVisible(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.05, rootMargin: "100px 0px 50px 0px" }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = cardRef.current;
-    if (!el) return;
-
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    setMousePos({ x, y });
-
-    // Normalized coordinates from -0.5 to 0.5
-    const normX = x / rect.width - 0.5;
-    const normY = y / rect.height - 0.5;
-
-    // 3D tilt angles
-    setTilt({
-      x: normX * 16, // rotateY
-      y: -normY * 16, // rotateX
+    mm.add(MOTION_OK_QUERY, () => {
+      gsap.from(wrap, {
+        y: 80,
+        opacity: 0,
+        duration: 1.1,
+        ease: "expo.out",
+        delay: (index % 4) * 0.08,
+        scrollTrigger: { trigger: wrap, start: "top 90%", once: true },
+      });
     });
-  };
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
+    mm.add(HOVER_MOTION_QUERY, () => {
+      // Pointer input only writes CSS variables; the stylesheet turns them into
+      // tilt, lift, glow and image counter-motion. No React state per frame.
+      gsap.set(card, { "--rx": 0, "--ry": 0, "--mx": 0, "--my": 0, "--glow": 0, "--lift": 0 });
+      const to = (prop: string) => gsap.quickTo(card, prop, { duration: 0.6, ease: "power3.out" });
+      const rx = to("--rx");
+      const ry = to("--ry");
+      const mx = to("--mx");
+      const my = to("--my");
+      const glow = to("--glow");
+      const lift = to("--lift");
 
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    setTilt({ x: 0, y: 0 });
-  };
+      const onMove = (e: PointerEvent) => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        rx(-y * 14);
+        ry(x * 14);
+        mx(x);
+        my(y);
+        glow(1);
+        lift(1);
+      };
+      const onLeave = () => {
+        rx(0);
+        ry(0);
+        mx(0);
+        my(0);
+        glow(0);
+        lift(0);
+      };
 
-  // Stagger delay based on index
-  const staggerDelay = (index % 4) * 85;
+      card.addEventListener("pointermove", onMove);
+      card.addEventListener("pointerleave", onLeave);
+      return () => {
+        card.removeEventListener("pointermove", onMove);
+        card.removeEventListener("pointerleave", onLeave);
+      };
+    });
+  }, wrapRef);
 
   return (
-    <div
-      className="[perspective:1200px]"
-      style={{ transformStyle: "preserve-3d" }}
-    >
+    <div ref={wrapRef} className="h-full [perspective:1000px]">
       <div
         ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        data-depth-card
         {...props}
-        className={`relative overflow-hidden transition-all ease-[cubic-bezier(0.34,1.56,0.64,1)] ${className}`}
-        style={{
-          transformStyle: "preserve-3d",
-          transformOrigin: "center bottom",
-          opacity: isVisible ? 1 : 0,
-          transform: isVisible
-            ? isHovered
-              ? `translateY(-12px) scale(1.035) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`
-              : "translateY(0px) scale(1) rotateX(0deg) rotateY(0deg)"
-            : "translateY(85px) scale(0.85) rotateX(20deg)",
-          boxShadow: isHovered
-            ? "0 35px 70px -15px rgba(0, 0, 0, 0.45), 0 0 20px rgba(201, 184, 138, 0.2)"
-            : "0 4px 20px -2px rgba(0, 0, 0, 0.1)",
-          transitionDuration: isVisible
-            ? isHovered
-              ? "0.15s"
-              : "0.65s"
-            : "0.95s",
-          transitionDelay: isVisible && !isHovered ? `${staggerDelay}ms` : "0ms",
-          ...style,
-        }}
+        className={`relative h-full [transform-style:preserve-3d] ${className}`}
+        style={style}
       >
-        {/* Dynamic Holographic Specular Sheen (Lusion light beam effect) */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-30 transition-opacity duration-300"
+          className="pointer-events-none absolute inset-0 z-30 rounded-[inherit]"
           style={{
-            opacity: isHovered ? 1 : 0,
-            background: `radial-gradient(circle 360px at ${mousePos.x}px ${mousePos.y}px, ${glowColor}, transparent 70%)`,
+            opacity: "var(--glow, 0)",
+            background: `radial-gradient(circle 300px at calc(50% + var(--mx, 0) * 100%) calc(50% + var(--my, 0) * 100%), ${glowColor}, transparent 70%)`,
           }}
         />
-
-        {/* Card Content with 3D Depth */}
-        <div
-          className="relative z-10 h-full flex flex-col"
-          style={{ transform: "translateZ(15px)" }}
-        >
+        <div className="relative z-10 h-full flex flex-col [transform:translateZ(60px)]">
           {children}
         </div>
       </div>
