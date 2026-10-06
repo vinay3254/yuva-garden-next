@@ -422,6 +422,7 @@ export interface WorkProject {
   label: string;
   place: string;
   image: string;
+  tags: string[];
 }
 
 export const workProjects: WorkProject[] = [
@@ -429,46 +430,55 @@ export const workProjects: WorkProject[] = [
     label: "Courtyard garden",
     place: "Residential",
     image: unsplashUrl("1686663048931-6df69f577a2f", 1200),
+    tags: ["Design", "Planting", "Irrigation"],
   },
   {
     label: "Rooftop deck",
     place: "Apartment",
     image: unsplashUrl("1617850687395-620757feb1f3", 1200),
+    tags: ["Terrace", "Containers", "Drip watering"],
   },
   {
     label: "Patio planting",
     place: "Villa",
     image: unsplashUrl("1696846912973-3233cc80bf86", 1200),
+    tags: ["Planting", "Pots", "Lighting"],
   },
   {
     label: "Kitchen garden",
     place: "Farmhouse",
     image: unsplashUrl("1601001815894-4bb6c81416d7", 1200),
+    tags: ["Edibles", "Raised beds", "Compost"],
   },
   {
     label: "Lawn and borders",
     place: "Residential",
     image: unsplashUrl("1668120089662-42642838cfef", 1200),
+    tags: ["Lawn & turf", "Borders", "Maintenance"],
   },
   {
     label: "Flower walk",
     place: "Resort",
     image: unsplashUrl("1597201278257-3687be27d954", 1200),
+    tags: ["Borders", "Seasonal colour"],
   },
   {
     label: "Fountain lawn",
     place: "Estate",
     image: unsplashUrl("1595387426463-bef727e35bb3", 1200),
+    tags: ["Lawn & turf", "Water feature"],
   },
   {
     label: "Stone path",
     place: "Residential",
     image: unsplashUrl("1655731695281-b0f818014486", 1200),
+    tags: ["Hardscape", "Ground cover"],
   },
   {
     label: "Palm entrance",
     place: "Villa",
     image: unsplashUrl("1634893448897-437a9593128e", 1200),
+    tags: ["Palms", "Entrance design", "Lighting"],
   },
 ];
 

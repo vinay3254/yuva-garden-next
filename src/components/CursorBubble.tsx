@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "@/components/motion/gsap";
 
 export default function CursorBubble() {
   const bubbleRef = useRef<HTMLDivElement | null>(null);
-  const [bubbleText, setBubbleText] = useState("View →");
 
   useEffect(() => {
     if (!window.matchMedia("(pointer:fine)").matches) return;
@@ -27,19 +26,10 @@ export default function CursorBubble() {
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
-      const interactiveCard = target.closest("[data-wcard], [data-pop], #popular .group, #popular [style*='perspective']");
+      const interactiveCard = target.closest("[data-pop], #popular .group");
       const isButtonOrLink = target.closest("button, a, input, textarea");
 
-      if (interactiveCard && !isButtonOrLink) {
-        ts = 1;
-        if (target.closest("[data-wcard]")) {
-          setBubbleText("Drag");
-        } else {
-          setBubbleText("View →");
-        }
-      } else {
-        ts = 0;
-      }
+      ts = interactiveCard && !isButtonOrLink ? 1 : 0;
     };
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -66,7 +56,7 @@ export default function CursorBubble() {
       ref={bubbleRef}
       className="fixed left-0 top-0 w-[88px] h-[88px] -ml-[44px] -mt-[44px] rounded-full bg-[#1b2a1f] text-[#f4f1ea] flex items-center justify-center font-sans-hanken font-semibold text-[13px] tracking-wider pointer-events-none z-[150] scale-0 will-change-transform shadow-xl"
     >
-      {bubbleText}
+      View →
     </div>
   );
 }
