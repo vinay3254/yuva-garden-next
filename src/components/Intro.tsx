@@ -1,40 +1,79 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap } from "@/components/motion/gsap";
+import { gsap, ScrollTrigger } from "@/components/motion/gsap";
 import { useGsap } from "@/components/motion/useGsap";
 import { MOTION_OK_QUERY, MOTION_QUERY } from "@/components/motion/reducedMotion";
 
-// Original vine paths (viewBox 0 0 1600 1600), approved in ribbon-grid-prototype.html.
-const VINE_TOP =
-  "M420 -40 C 520 120, 560 260, 560 380 C 560 470, 470 520, 300 540 C 80 565, 20 720, 120 820 C 230 930, 520 900, 760 760 C 980 630, 1080 560, 1200 700 C 1320 840, 1350 960, 1470 930 C 1560 905, 1600 860, 1620 820";
-const VINE_BOTTOM =
-  "M-40 1180 C 200 1060, 420 1120, 520 1240 C 620 1360, 820 1380, 980 1250 C 1120 1140, 1280 1120, 1400 1220 C 1480 1290, 1540 1380, 1640 1400";
+type Point = [number, number];
+
+// Smooth curve through points (Catmull-Rom converted to cubic Béziers).
+function smoothPath(points: Point[]) {
+  let d = `M${points[0][0]} ${points[0][1]}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const [x0, y0] = points[i - 1] ?? points[i];
+    const [x1, y1] = points[i];
+    const [x2, y2] = points[i + 1];
+    const [x3, y3] = points[i + 2] ?? points[i + 1];
+    d += ` C${x1 + (x2 - x0) / 6} ${y1 + (y2 - y0) / 6}, ${x2 - (x3 - x1) / 6} ${y2 - (y3 - y1) / 6}, ${x2} ${y2}`;
+  }
+  return d;
+}
+
+// One continuous vine, laid out from the media card's real position: it drops in
+// from the top, wraps around the card, sweeps right and ends inside the section.
+function vinePath(section: HTMLElement, media: HTMLElement, mediaScale: number) {
+  const W = section.clientWidth;
+  const x = media.offsetLeft;
+  const y = media.offsetTop;
+  const w = media.offsetWidth * mediaScale;
+  const h = media.offsetHeight * mediaScale;
+  const pad = Math.min(90, W * 0.05);
+  const clampX = (v: number) => Math.min(W - pad, Math.max(pad, v));
+
+  const points: Point[] = [
+    [clampX(x + w * 0.62), -40],
+    [clampX(x + w * 0.5), y - pad * 0.9],
+    [clampX(x - pad * 0.6), y + h * 0.35],
+    [clampX(x + w * 0.28), y + h + pad * 0.8],
+    [clampX(x + w + pad * 1.4), y + h * 0.45],
+    [clampX(W * 0.8), y + h * 0.12],
+    [clampX(W - pad), y + h * 0.62],
+  ];
+  return { d: smoothPath(points), W, H: section.clientHeight };
+}
 
 export default function Intro() {
   const sectionRef = useRef<HTMLElement | null>(null);
 
   useGsap(() => {
+    const section = sectionRef.current;
+    const svg = section?.querySelector<SVGSVGElement>("[data-vine-svg]");
+    const path = section?.querySelector<SVGPathElement>("[data-vine]");
+    const media = section?.querySelector<HTMLElement>("[data-intro-media]");
+    if (!section || !svg || !path || !media) return;
+
+    const layoutVine = () => {
+      // The card grows to 1.25x on desktop motion; wrap the vine around its final size.
+      const scale = window.matchMedia(MOTION_QUERY).matches ? 1.25 : 1;
+      const { d, W, H } = vinePath(section, media, scale);
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      path.setAttribute("d", d);
+    };
+    layoutVine();
+    ScrollTrigger.addEventListener("refreshInit", layoutVine);
+
     const mm = gsap.matchMedia();
 
     mm.add(MOTION_OK_QUERY, () => {
-      // pathLength={1} on each path, so dash units are 0..1 at any rendered size.
+      // pathLength={1} on the path, so dash units are 0..1 at any rendered size.
       gsap.fromTo(
-        "[data-vine='top']",
+        path,
         { strokeDasharray: 1, strokeDashoffset: 1 },
         {
           strokeDashoffset: 0,
           ease: "none",
-          scrollTrigger: { trigger: sectionRef.current, start: "top 85%", end: "center 40%", scrub: 1 },
-        }
-      );
-      gsap.fromTo(
-        "[data-vine='bottom']",
-        { strokeDasharray: 1, strokeDashoffset: 1 },
-        {
-          strokeDashoffset: 0,
-          ease: "none",
-          scrollTrigger: { trigger: sectionRef.current, start: "top 10%", end: "bottom 60%", scrub: 1 },
+          scrollTrigger: { trigger: section, start: "top 85%", end: "bottom 75%", scrub: 1 },
         }
       );
       gsap.fromTo(
@@ -63,32 +102,22 @@ export default function Intro() {
       gsap.fromTo("[data-giant-word='left']", { xPercent: 12 }, { xPercent: -4, ease: "none", scrollTrigger: giant });
       gsap.fromTo("[data-giant-word='right']", { xPercent: -12 }, { xPercent: 4, ease: "none", scrollTrigger: giant });
     });
+
+    return () => ScrollTrigger.removeEventListener("refreshInit", layoutVine);
   }, sectionRef);
 
   return (
     <section ref={sectionRef} className="relative pt-[12vh] pb-[8vh] px-[5vw] overflow-x-clip">
       <svg
+        data-vine-svg
         aria-hidden="true"
-        viewBox="0 0 1600 1600"
-        preserveAspectRatio="none"
         className="pointer-events-none absolute inset-0 z-[2] w-full h-full overflow-visible"
       >
         <path
-          data-vine="top"
+          data-vine
           pathLength={1}
-          d={VINE_TOP}
           fill="none"
-          stroke="#7fae68"
-          strokeWidth={34}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          data-vine="bottom"
-          pathLength={1}
-          d={VINE_BOTTOM}
-          fill="none"
-          stroke="#5f8f4e"
+          stroke="#6f9f5a"
           strokeWidth={34}
           strokeLinecap="round"
           strokeLinejoin="round"
