@@ -66,7 +66,9 @@ export default function FoldStack({
           };
           const panel = card.querySelector<HTMLElement>("[data-fold-panel]");
           const dim = card.querySelector<HTMLElement>("[data-fold-dim]");
-          gsap.to(panel, { rotateX: -14, scale: 0.86, yPercent: -6, ease: "none", scrollTrigger });
+          // Pivot on the top edge with no upward shift, so the folded card stays
+          // fully behind the next one instead of peeking above it.
+          gsap.to(panel, { rotateX: -14, scale: 0.86, ease: "none", scrollTrigger });
           gsap.to(dim, { opacity: 0.65, ease: "none", scrollTrigger });
         });
 
