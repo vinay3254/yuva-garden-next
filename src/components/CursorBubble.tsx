@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { gsap } from "@/components/motion/gsap";
 
 export default function CursorBubble() {
   const bubbleRef = useRef<HTMLDivElement | null>(null);
@@ -18,7 +19,6 @@ export default function CursorBubble() {
     let ty = y;
     let s = 0;
     let ts = 0;
-    let rafId: number;
 
     const onPointerMove = (e: PointerEvent) => {
       tx = e.clientX;
@@ -52,13 +52,12 @@ export default function CursorBubble() {
       if (b) {
         b.style.transform = `translate(${x}px, ${y}px) scale(${s.toFixed(3)})`;
       }
-      rafId = requestAnimationFrame(loop);
     };
-    rafId = requestAnimationFrame(loop);
+    gsap.ticker.add(loop);
 
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(loop);
     };
   }, []);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { gsap } from "@/components/motion/gsap";
 
 export default function BackgroundShader() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -133,7 +134,6 @@ export default function BackgroundShader() {
     window.addEventListener("resize", resize);
 
     const t0 = performance.now();
-    let rafId: number;
 
     const render = () => {
       mouse.x += (mouse.tx - mouse.x) * 0.04;
@@ -145,13 +145,12 @@ export default function BackgroundShader() {
       gl.uniform1f(us, window.scrollY);
 
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      rafId = requestAnimationFrame(render);
     };
 
-    render();
+    gsap.ticker.add(render);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(render);
       window.removeEventListener("pointermove", onMouse);
       window.removeEventListener("resize", resize);
     };

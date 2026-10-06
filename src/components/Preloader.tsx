@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { gsap } from "@/components/motion/gsap";
 
 export default function Preloader() {
   const [percent, setPercent] = useState(0);
@@ -16,7 +17,6 @@ export default function Preloader() {
     const MIN_DURATION = 1600;
     let shown = 0;
     let done = false;
-    let rafId: number;
 
     const frame = () => {
       // Calculate progress based on time and image ready states
@@ -41,12 +41,8 @@ export default function Preloader() {
 
       if (shown >= 100 && !done) {
         done = true;
+        gsap.ticker.remove(frame);
         setTimeout(exit, 240);
-        return;
-      }
-
-      if (!done) {
-        rafId = requestAnimationFrame(frame);
       }
     };
 
@@ -73,9 +69,9 @@ export default function Preloader() {
       }, 550);
     };
 
-    rafId = requestAnimationFrame(frame);
+    gsap.ticker.add(frame);
 
-    return () => cancelAnimationFrame(rafId);
+    return () => gsap.ticker.remove(frame);
   }, []);
 
   if (hidden) return null;

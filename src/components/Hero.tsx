@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { growthStages, getWhatsAppUrl, DISPLAY_PHONE } from "@/data/content";
+import { gsap } from "@/components/motion/gsap";
 
 export default function Hero() {
   const [currentProgress, setCurrentProgress] = useState(0); // 0 to 1
@@ -19,7 +20,6 @@ export default function Hero() {
   useEffect(() => {
     let target = 0;
     let cur = 0;
-    let rafId: number;
 
     const clamp = (v: number, min: number, max: number) =>
       Math.min(max, Math.max(min, v));
@@ -34,6 +34,8 @@ export default function Hero() {
       if (target > 0.01) setHasInteracted(true);
       if (target < 0.99) {
         e.preventDefault();
+        // Keep Lenis (listening on window) from also scrolling the page.
+        e.stopPropagation();
       }
     };
 
@@ -46,15 +48,14 @@ export default function Hero() {
       cur += (target - cur) * 0.1;
       if (Math.abs(target - cur) < 0.001) cur = target;
       setCurrentProgress(cur);
-      rafId = requestAnimationFrame(loop);
     };
-    rafId = requestAnimationFrame(loop);
+    gsap.ticker.add(loop);
 
     return () => {
       if (container) {
         container.removeEventListener("wheel", onWheel);
       }
-      cancelAnimationFrame(rafId);
+      gsap.ticker.remove(loop);
     };
   }, []);
 
