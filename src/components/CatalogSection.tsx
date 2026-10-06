@@ -196,6 +196,7 @@ export default function CatalogSection() {
       {/* Detail Modal Dialog */}
       {activeDetailItem && (
         <div
+          data-lenis-prevent
           onClick={() => setActiveDetailItem(null)}
           className="fixed inset-0 z-50 bg-[#0f1611]/70 backdrop-blur-md flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-200"
         >
